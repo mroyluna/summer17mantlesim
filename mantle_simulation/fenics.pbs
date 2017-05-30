@@ -4,7 +4,7 @@
 ## Copyright (c) 2013 The Center for Advanced Research Computing
 ##                            at The University of New Mexico
 
-#PBS -l nodes=1:ppn=16
+#PBS -l nodes=2:ppn=16
 #PBS -l walltime=48:00:00
 #PBS -S /bin/bash
 #PBS -j oe job.err
@@ -36,5 +36,5 @@ echo $PROCS
 # Change to the directory that this job was submitted from
 cd $PBS_O_WORKDIR
 
-mpirun -n $PROCS -machinefile $PBS_NODEFILE python simulation.py test_16_16_xena
+mpirun -n $PROCS -machinefile $PBS_NODEFILE python test_5_30_17.py test_8_8_8_xena
 #tmux new-session 'curl -s https://fenicsproject.org/fenics-install.sh | bash'

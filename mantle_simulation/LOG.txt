@@ -1,0 +1,13 @@
+Notes:
+0. 5_23_17 -- got code running on xena!  tested it out on a single node (16 CPU) with nx=16=ny=nz; 
+BUT this resolution did not finish in 48 hours.
+
+1. Today is 5_30_17;  MR modified constants.py to reduce number of elements so that the code runs faster.
+MR also modified fenics.pbs to allow for 2 nodes and to run the code from a copy of simulation.py that is in test_5_30_17.py and the output is written to test_8_8_8_xena/
+
+keep a copy of fenics.pbs in fenics.pbs_5_30_17
+
+TO DO FOR ANDY: - watch current run, run manually different k values if needed
+		- please commit everythign to github, except the results folders
+
+2. 
