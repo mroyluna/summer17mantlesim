@@ -101,6 +101,11 @@ output directory and contains the repository sha hash for the current git HEAD
 and a list of all changes and their diffs. This makes it easy to verify what
 code generated the results.
 
+Note added on 7/13/17: for lithos, you must first have run 
+conda create -n fenicsproject -c conda-forge fenics
+
+then you can start fenics by 
+source activate fenicsproject
 
 ## Post-Processing
 All post processing scripts are inside post_process/. The original 3-dimensional
