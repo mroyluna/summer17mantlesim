@@ -85,6 +85,12 @@ There is a file notes.org which keeps track of potential code changes and other
 information.
 
 ### Running
+
+Note added 7/14/17: use docker to run image then start fenics
+
+curl -s https://get.fenicsproject.org | bash
+~/.local/fenicsproject run
+
 ```mpirun -n $num_threads python simulation.py $output_directory``` This will
 run the simulation in parallel using $num_threads. To avoid completely
 overwhelming the system, prefix the above command with `nice` or reduce
@@ -101,7 +107,6 @@ output directory and contains the repository sha hash for the current git HEAD
 and a list of all changes and their diffs. This makes it easy to verify what
 code generated the results.
 
-Note added on 7/13/17: for lithos, you must first have run: conda create -n fenicsproject -c conda-forge fenics
 
 then you can start fenics by : source activate fenicsproject
 
