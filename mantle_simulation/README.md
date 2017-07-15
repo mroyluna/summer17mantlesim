@@ -89,6 +89,7 @@ information.
 Note added 7/14/17: use docker to run image then start fenics
 
 curl -s https://get.fenicsproject.org | bash
+
 ~/.local/fenicsproject run
 
 ```mpirun -n $num_threads python simulation.py $output_directory``` This will
