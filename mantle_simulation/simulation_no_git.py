@@ -78,7 +78,7 @@ def time_left(steps_finished, total_steps, start_time):
     completed = steps_finished / total_steps
     rate = completed / (clock() - start_time)
     seconds_left = (1.0 - completed) / rate if steps_finished != 0 else 0.0
-    print('{:.4f}% Completed, Time Left {:.2f} minutes'.format(completed, seconds_left / 60.0))
+    return [completed, seconds_left / 60.0]
 
 
 def linear_interpolant(x0, y0, x1, y1, x_val):
@@ -159,7 +159,7 @@ class PeriodicBoundary(SubDomain):
         y[2] = x[2]
 
 # TODO: Go over 3d conversion
-def run_with_params(Tb, mu_value, k_s, path):
+def run_with_params(Tb, mu_value, k_s, path, base_path):
     run_time_init = clock()
 
     mesh = BoxMesh(Point(0.0, 0.0, 0.0), Point(mesh_width, mesh_width, mesh_height), nx, ny, nz)
@@ -189,7 +189,18 @@ def run_with_params(Tb, mu_value, k_s, path):
     tau = h / w0
     p0 = mu_a * w0 / h
 
-    log(mu_a, mu_bot, Ra, w0, p0)
+
+    # Writing file containing constants for each mu, Tb, k (located in code_copy directory)
+
+    const_str = 'mu_a = {}, Tb = {}, k = {} \n\nmu_bot = {}\nRa = {}\nw0 = {}\np0 = {}'.format(mu_a, Tb, k_s, mu_bot, Ra, w0, p0)
+    const_str += '\n________________________________________\n\n'
+
+    constfile = os.path.join(base_path, 'code_copy', 'constants.txt')
+    logfile = os.path.join(base_path, 'code_copy', 'progress_log.txt') 
+
+    os.system("printf '" + const_str + "' >> " + constfile)
+
+    # Continuing calculations
 
     slip_vx = 1.6E-09 / w0  # Non-dimensional
     slip_velocity = Constant((slip_vx, 0.0, 0.0))
@@ -276,7 +287,19 @@ def run_with_params(Tb, mu_value, k_s, path):
         nV, nP, nT, nTf = u.split()  # TODO: write with Tf, ... etc
 
         if count % output_every == 0:
-            time_left(count, t_end / time_step, run_time_init)  # TODO: timestep vs dt
+            
+	    percent_complete, time_remaining = time_left(count, t_end / time_step, run_time_init)  # TODO: timestep vs dt
+
+	    # Update progress_log.txt (found in code_copy directory) and print progress to screen
+
+	    log_str = '{:.4f} Percent Completed, Time Left {:.2f} minutes'.format(percent_complete, time_remaining)
+
+	    log(log_str)
+	
+	    os.system("printf '" + log_str + "\n' >> " + logfile)
+
+
+	    # Now write the data files in their respective directories
 
             # TODO: Make sure all writes are to the same function for each time step
             files['T_fluid'].write(nTf, t)
@@ -297,9 +320,14 @@ def run_with_params(Tb, mu_value, k_s, path):
 
         t += time_step
         count += 1
+    
+    # Print progress to screen and update progress_log.txt with completed case
 
-    log('Case mu={}, Tb={}, k={} complete. Run time = {:.2f} minutes'.format(mu_a, Tb, k_s, (clock() - run_time_init) / 60.0))
+    log_str_complete = 'Case mu={}, Tb={}, k={} complete. Run time = {:.2f} minutes'.format(mu_a, Tb, k_s, (clock() - run_time_init) / 60.0)
 
+    log(log_str_complete)
+
+    os.system("printf '" + log_str_complete + "\n________________________________________\n\n' >> " + logfile)	
 
 def main():
     # TODO: Argument parsing
@@ -307,22 +335,32 @@ def main():
     parser.add_argument('base')
     parser.add_argument('mu_vals', metavar='MU', type=float, nargs='+')
     base = sys.argv[1] if len(sys.argv) > 1 else 'run'
-    codepath = os.getcwd() + '/' + sys.argv[0]
+    codepath = os.path.join(os.getcwd(), sys.argv[0])
 
     setup_base_directory(base, codepath)
+    basepath = os.path.join(os.getcwd(), base)
 
     T_vals = [1300.0]
     mu_vals = [5e21]
     k_s = [2e-2, 1e-2, 1e-3, 0.0]
 
     for (mu, T, k) in itertools.product(mu_vals, T_vals, k_s):
-        sub_dir = base + '/mu={}/Tb={}/k={}'.format(mu, T, k)
+        sub_dir = basepath + '/mu={}/Tb={}/k={}'.format(mu, T, k)
 
-        log('Creating ' + sub_dir)
+	# Logging progress for each new mu, Tb, k value
+
+	create_str = 'Creating ' + sub_dir
+
+        log(create_str)				# Print to screen
+						
+	os.system("printf '" + create_str + "\n\n' >> " + os.path.join(basepath, 'code_copy', 'progress_log.txt'))
+
+	# Making the subdirectory based on mu, Tb, k value and running simulation
+
         main_proc(os.makedirs)(sub_dir)
 
         COMM.barrier()
-        run_with_params(T, mu, k, sub_dir)
+        run_with_params(T, mu, k, sub_dir, basepath)
 
 
 @main_proc
@@ -349,3 +387,4 @@ def setup_base_directory(base, codepath):
 
 if __name__ == '__main__':
     main()
+
